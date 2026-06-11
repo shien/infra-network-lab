@@ -32,6 +32,12 @@ make down               # VM・ネットワークを削除(イメージは残す
   (コンソールは `virsh -c qemu:///system console lab-r1`、vyos/vyos)
 - 演習設定を壊しても `make reset`、それでも駄目なら `make down && make up`
 
+## 学習計画
+
+基礎から VPN まで全 15 章の学習計画を [learning/README.md](learning/README.md) に用意している
+(OSPF / BGP / VPN は入門・応用に分割し、1 章あたりの分量を揃えてある)。
+章ごとの感想は [learning/notes/](learning/notes/) に記録する。
+
 ## ドキュメント
 
 設計の詳細(スペック・IP 計画・ソフトウェア選定・自動化設計・演習一覧)は
