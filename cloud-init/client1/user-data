@@ -1,0 +1,16 @@
+#cloud-config
+# client1 の初期設定。@SSH_PUBKEY@ は scripts/30-create-vms.sh が実鍵に置換する。
+# 演習操作を簡単にするため root 直接ログイン(鍵認証のみ)を許可する。
+hostname: client1
+disable_root: false
+ssh_authorized_keys:
+  - "@SSH_PUBKEY@"
+package_update: true
+packages:
+  - iperf3
+  - tcpdump
+  - mtr
+runcmd:
+  # パッケージ導入後はデフォルト経路を mgmt から外す(演習側の経路と衝突させないため)
+  - sed -i '/gateway 172.16.99.1/d' /etc/network/interfaces
+  - ip route del default || true

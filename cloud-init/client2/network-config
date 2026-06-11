@@ -1,0 +1,17 @@
+# client2: eth0=mgmt(静的)、eth1=lan-b(初期値は静的。演習で DHCP に切替)
+# eth0 の gateway は初回のパッケージ導入用。導入後に user-data の runcmd で外す。
+version: 1
+config:
+  - type: physical
+    name: eth0
+    subnets:
+      - type: static
+        address: 172.16.99.22/24
+        gateway: 172.16.99.1
+        dns_nameservers:
+          - 172.16.99.1
+  - type: physical
+    name: eth1
+    subnets:
+      - type: static
+        address: 192.168.20.100/24

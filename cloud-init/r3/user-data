@@ -1,0 +1,11 @@
+#cloud-config
+# r3 の初期設定(初回起動時に一度だけ適用)。
+# ここでは mgmt(eth0) と SSH のみ設定し、演習側の設定は scenarios/ から投入する。
+# @SSH_KEY_TYPE@ / @SSH_KEY_B64@ は scripts/30-create-vms.sh が実鍵に置換する。
+vyos_config_commands:
+  - set system host-name 'r3'
+  - set interfaces ethernet eth0 address '172.16.99.13/24'
+  - set interfaces ethernet eth0 description 'MGMT'
+  - set service ssh port '22'
+  - set system login user vyos authentication public-keys lab type '@SSH_KEY_TYPE@'
+  - set system login user vyos authentication public-keys lab key '@SSH_KEY_B64@'

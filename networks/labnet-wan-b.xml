@@ -1,0 +1,5 @@
+<network>
+  <name>labnet-wan-b</name>
+  <!-- r2 - r3 間の P2P リンク (10.0.23.0/30) -->
+  <bridge name="virbr-labwanb" stp="on" delay="0"/>
+</network>

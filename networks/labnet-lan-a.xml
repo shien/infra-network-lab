@@ -1,0 +1,5 @@
+<network>
+  <name>labnet-lan-a</name>
+  <!-- サイト A の LAN (192.168.10.0/24)。ホスト IP なしの純粋な仮想スイッチ -->
+  <bridge name="virbr-lablana" stp="on" delay="0"/>
+</network>

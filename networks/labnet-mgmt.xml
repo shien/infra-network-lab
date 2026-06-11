@@ -1,0 +1,8 @@
+<network>
+  <name>labnet-mgmt</name>
+  <!-- 管理用 out-of-band ネットワーク(NAT で外部到達可)。
+       DHCP は使わず全 VM 静的 IP。libvirt の dnsmasq は DNS としてのみ利用する -->
+  <forward mode="nat"/>
+  <bridge name="virbr-labmgmt" stp="on" delay="0"/>
+  <ip address="172.16.99.1" netmask="255.255.255.0"/>
+</network>
