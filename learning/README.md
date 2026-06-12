@@ -1,19 +1,21 @@
 # ネットワーク学習計画
 
-本リポジトリのラボ(VyOS×KVM)を使って、ネットワークの基礎から VPN まで
-全 15 章で学ぶ。1 章あたりの分量はおおよそ均等になるように分割してある。
+本リポジトリのラボ(VyOS×KVM)を使って、ネットワークの基礎から VPN・DNS・IPv6 まで
+全 17 章で学ぶ。1 章あたりの分量はおおよそ均等になるように分割してある。
 
 ## 進め方
 
 - 時間制約は設けない。各章の**完了チェック**を満たしたら次の章へ進む
-- 章を終えるごとに、感想・気づき・つまずいた点を `notes/` の対応ファイルに書く
+- 章を終えるごとに `notes/` の対応ファイルに学習ノートを書く。各ファイルは
+  **学んだこと / つまずいた点と解決方法 / 残った疑問 / 感想** のテンプレートに
+  なっているので、埋めながら振り返る
 - 実習でラボを壊しても `make reset`、駄目なら `make down && make up` でやり直せる
 - 第 4 章以降の実習コマンドの詳細は各 `scenarios/XX/README.md` を参照
   (`make scenario-XX` の適用時にも表示される)
 
 ## 章一覧
 
-| 章 | テーマ | 対応ラボ | 感想 |
+| 章 | テーマ | 対応ラボ | ノート |
 |---|---|---|---|
 | 1 | ネットワーク基礎(OSI/TCP-IP、カプセル化) | 座学 | [notes](notes/ch01-network-basics.md) |
 | 2 | Ethernet と ARP | 座学(実機は第5章) | [notes](notes/ch02-ethernet-arp.md) |
@@ -29,7 +31,9 @@
 | 12 | ステートフルファイアウォール | [05-firewall](../scenarios/05-firewall/README.md) | [notes](notes/ch12-firewall.md) |
 | 13 | VPN 入門(WireGuard) | [06-vpn](../scenarios/06-vpn/README.md) | [notes](notes/ch13-vpn-wireguard.md) |
 | 14 | VPN 応用(暗号化検証・IPsec) | [06-vpn](../scenarios/06-vpn/README.md) | [notes](notes/ch14-vpn-advanced.md) |
-| 15 | 総合演習・トラブルシューティング | 全シナリオ | [notes](notes/ch15-troubleshooting.md) |
+| 15 | DNS(名前解決) | [07-dns](../scenarios/07-dns/README.md) | [notes](notes/ch15-dns.md) |
+| 16 | IPv6 入門 | [08-ipv6](../scenarios/08-ipv6/README.md) | [notes](notes/ch16-ipv6.md) |
+| 17 | 総合演習・トラブルシューティング | 全シナリオ | [notes](notes/ch17-troubleshooting.md) |
 
 ---
 
@@ -235,7 +239,47 @@
   - [ ] r2 の tcpdump で内側のアドレス・ペイロードが見えないことを確認できた
   - [ ] WireGuard と IPsec の違いを 3 点挙げられる
 
-## 第15章 総合演習・トラブルシューティング
+## 第15章 DNS(名前解決)
+
+- **目標**: 名前解決の流れを理解し、ラボ内に DNS サーバ/フォワーダを構築・観察できる
+- **学ぶこと**
+  - ドメイン名と FQDN、A/PTR レコード、`/etc/hosts` と `/etc/resolv.conf` の役割
+  - スタブリゾルバ → フォワーダ → 上流サーバという問い合わせの連鎖、キャッシュと TTL
+  - VyOS の static-host-mapping + DNS forwarding
+- **実習**: [scenarios/07-dns/README.md](../scenarios/07-dns/README.md)
+  - client1 で `nslookup client2.lab` を実行し、`tcpdump -ni eth1 port 53` で
+    問い合わせ/応答のパケットを捕捉する
+  - r2 で port 53 を観察し、client2 の問い合わせが r3 → r1 へ転送されるのを確認する
+  - 2 回目の問い合わせがキャッシュで即答される(r2 にパケットが流れない)ことを確認する
+- **完了チェック**
+  - [ ] 「DNS は通信そのものではなく、通信の前段の名前→IP 変換」であることを
+        パケットの順序(port 53 → ICMP)で説明できる
+  - [ ] client2 の名前解決の経路(client2 → r3 → r1)とキャッシュの効果をパケットで裏付けられた
+
+## 第16章 IPv6 入門
+
+- **目標**: IPv6 アドレス体系と SLAAC/NDP を理解し、デュアルスタック網を構築できる
+- **学ぶこと**
+  - アドレス表記と省略規則、リンクローカル(fe80::/10)とグローバル、/64 の意味
+  - NDP(RS/RA・NS/NA)が ARP と DHCP の一部を置き換えること、SLAAC、DAD
+  - OSPFv3(IPv6 版 OSPF)の基本、IPv4(第 8 章)との違い
+- **実習**: [scenarios/08-ipv6/README.md](../scenarios/08-ipv6/README.md)
+  ```sh
+  make ssh-client1
+    ip -6 addr show eth1         # SLAAC で付いたグローバルアドレス
+    ping -6 2001:db8:b::1        # LAN-B 側まで IPv6 で到達
+    ip -6 neigh                  # NDP テーブル(ARP の IPv6 版)
+  make ssh-r2
+    show ipv6 ospfv3 neighbor
+    show ipv6 route ospfv3
+  ```
+  - `tcpdump -ni eth1 icmp6` で RS → RA → DAD の流れを観察する
+- **完了チェック**
+  - [ ] DHCP なしでクライアントにアドレスとデフォルト経路が付く仕組み(RA/SLAAC)を説明できる
+  - [ ] `ping -6 2001:db8:b::1` が通り、その経路を `show ipv6 route ospfv3` で説明できる
+  - [ ] ARP(第 2 章)と NDP の対応関係(who-has ⇔ NS など)を説明できる
+
+## 第17章 総合演習・トラブルシューティング
 
 - **目標**: これまでの知識を総動員して、原因不明の障害を切り分けられる
 - **学ぶこと**: 切り分けの定石(下の層から / 近くから遠くへ)、
@@ -243,8 +287,9 @@
 - **実習**
   - `make down && make up` 後、各シナリオを順に適用し、各章の完了チェックを高速に再走する
   - セルフ障害演習: 任意のシナリオで自分(または他人)に設定を 1 箇所壊してもらい、
-    show/tcpdump だけで原因を特定する(例: 経路 1 本削除、FW ルール追加、DHCP レンジ変更)
-  - 仕上げ: `make reset` 状態から scenarios/ を見ずに 01〜06 相当の設定を自力投入する
+    show/tcpdump だけで原因を特定する(例: 経路 1 本削除、FW ルール追加、DHCP レンジ変更、
+    DNS フォワーダの転送先変更)
+  - 仕上げ: `make reset` 状態から scenarios/ を見ずに 01〜08 相当の設定を自力投入する
 - **完了チェック**
   - [ ] 壊された設定を 3 パターン以上、自力で特定・復旧できた
   - [ ] 模範解答を見ずに LAN〜VPN までの構成を一通り組めた
